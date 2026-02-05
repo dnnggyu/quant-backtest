@@ -40,7 +40,7 @@ def load_and_process_data():
     df_cf = sf.load_cashflow(variant='annual', market='us').reset_index()
     df_prices = sf.load_shareprices(variant='daily', market='us').reset_index()    
     df_prices[DATE] = pd.to_datetime(df_prices[DATE])
-    df_prices = df_prices[df_prices[DATE] >= '2020-03-01'].reset_index(drop=True)
+    df_prices = df_prices[df_prices[DATE] >= '2021-03-01'].reset_index(drop=True)
     # [핵심] CLOSE 외에 안 쓰는 컬럼(Open, High, Low 등)은 메모리에서 즉시 퇴출
     keep_cols = [TICKER, DATE, CLOSE]
     df_prices = df_prices[[c for c in keep_cols if c in df_prices.columns]]
