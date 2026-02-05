@@ -31,7 +31,7 @@ METRIC_DESC = {
 
 #sf.set_api_key('18ae7c59-5843-408e-8df9-314107ef4f2f')
 sf.set_api_key(st.secrets["SIMFIN_API_KEY"])
-sf.set_data_dir('./simfin_data/')
+sf.set_data_dir('./new_simfin_cache/')
 
 # --- 2. 데이터 로드 및 전처리 ---
 @st.cache_data(show_spinner="SimFin 데이터를 불러오는 중입니다...")
