@@ -38,7 +38,11 @@ def load_and_process_data():
     df_inc = sf.load_income(variant='annual', market='us').reset_index()
     df_bal = sf.load_balance(variant='annual', market='us').reset_index()
     df_cf = sf.load_cashflow(variant='annual', market='us').reset_index()
-    df_prices = sf.load_shareprices(variant='daily', market='us', begin='2020-03-01').reset_index()    
+    df_prices = sf.load_shareprices(variant='daily', market='us').reset_index()
+    
+    # 로드 직후에 파이썬 판다스 문법으로 날짜를 자릅니다. (SimFin 인자 오류 회피)
+    df_prices[DATE] = pd.to_datetime(df_prices[DATE])
+    df_prices = df_prices[df_prices[DATE] >= '2020-03-01'].reset_index(drop=True)
 
     float_cols = [OPEN, HIGH, LOW, CLOSE, ADJ_CLOSE, VOLUME]
     for col in float_cols:
