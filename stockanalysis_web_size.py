@@ -38,20 +38,16 @@ def load_and_process_data():
     df_inc = sf.load_income(variant='annual', market='us').reset_index()
     df_bal = sf.load_balance(variant='annual', market='us').reset_index()
     df_cf = sf.load_cashflow(variant='annual', market='us').reset_index()
-    df_prices = sf.load_shareprices(variant='daily', market='us').reset_index()
-    
-    # 로드 직후에 파이썬 판다스 문법으로 날짜를 자릅니다. (SimFin 인자 오류 회피)
+    df_prices = sf.load_shareprices(variant='daily', market='us').reset_index()    
     df_prices[DATE] = pd.to_datetime(df_prices[DATE])
     df_prices = df_prices[df_prices[DATE] >= '2022-03-01'].reset_index(drop=True)
-
-    float_cols = [OPEN, HIGH, LOW, CLOSE, ADJ_CLOSE, VOLUME]
-    for col in float_cols:
-        if col in df_prices.columns:
-            df_prices[col] = df_prices[col].astype('float32')
-
-    for df in [df_inc, df_bal, df_cf, df_prices]:
-        date_col = REPORT_DATE if REPORT_DATE in df.columns else DATE
-        df[date_col] = pd.to_datetime(df[date_col])
+    # [핵심] CLOSE 외에 안 쓰는 컬럼(Open, High, Low 등)은 메모리에서 즉시 퇴출
+    keep_cols = [TICKER, DATE, CLOSE]
+    df_prices = df_prices[[c for c in keep_cols if c in df_prices.columns]]
+    
+    # [핵심] 숫자 정밀도 낮추기
+    if CLOSE in df_prices.columns:
+        df_prices[CLOSE] = df_prices[CLOSE].astype('float32')
 
     df_prices = df_prices.sort_values(by=[TICKER, DATE]).reset_index(drop=True)
     
