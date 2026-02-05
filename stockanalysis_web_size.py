@@ -42,7 +42,7 @@ def load_and_process_data():
     
     # 로드 직후에 파이썬 판다스 문법으로 날짜를 자릅니다. (SimFin 인자 오류 회피)
     df_prices[DATE] = pd.to_datetime(df_prices[DATE])
-    df_prices = df_prices[df_prices[DATE] >= '2020-03-01'].reset_index(drop=True)
+    df_prices = df_prices[df_prices[DATE] >= '2024-03-01'].reset_index(drop=True)
 
     float_cols = [OPEN, HIGH, LOW, CLOSE, ADJ_CLOSE, VOLUME]
     for col in float_cols:
