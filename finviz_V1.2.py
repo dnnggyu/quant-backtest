@@ -702,6 +702,18 @@ if 'final_df' in st.session_state and st.session_state.final_df is not None:
                             st.session_state.selected_ticker = sector_df.iloc[s_idx]['Ticker']
                     else:
                         st.info(f"{sector_name} 섹터에 해당하는 종목이 없습니다.")
+                    
+    st.divider()
+    col_dl, _ = st.columns([1, 1])
+    with col_dl:
+        csv = final_df.to_csv(index=False).encode('utf-8-sig')
+        st.download_button(
+            label="📥 전체 분석 결과 CSV 다운로드",
+            data=csv,
+            file_name=f"quant_result_{time.strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
 
 import yfinance as yf
 
@@ -879,6 +891,4 @@ if st.session_state.get('selected_ticker'):
 
     st.caption("※ 모든 데이터는 외부 전역 변수인 DISPLAY_MAP의 정의된 순서와 명칭을 따릅니다.")
 
-    st.divider()
-    csv = final_df.to_csv(index=False).encode('utf-8-sig')
-    st.download_button("📥 전체 분석 결과 CSV 다운로드", data=csv, file_name="quant_result.csv")
+    
