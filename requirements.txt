@@ -5,3 +5,9 @@ numpy
 scikit-learn
 matplotlib
 plotly
+streamlit
+pandas
+finvizfinance
+yfinance
+numpy
+lxml
