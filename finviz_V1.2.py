@@ -306,42 +306,18 @@ def safe_num(series):
 
 def get_column_config(df):
     config = {}
-    pct_keywords = ["PERFORMANCE", "MOMENTUM", "PERF", "ROE", "MARGIN", "YIELD", "GROWTH", "CHANGE", "SHORT FLOAT"]
-    
     for col in df.columns:
         col_upper = col.upper()
         
-        # 1. 퍼센트 지표 안전하게 처리
-        if any(k in col_upper for k in pct_keywords):
-            # 문자열인 경우 '%' 제거 후 숫자로 변환
-            if df[col].dtype == 'object':
-                df[col] = df[col].astype(str).str.replace('%', '').str.replace('-', '0')
+        # 이제 데이터 자체가 "45.00%" 형태의 문자열이므로, 
+        # NumberColumn이 아닌 일반 Column이나 TextColumn으로 취급합니다.
+        # (만약 정렬 기능을 유지하고 싶다면 아무 설정도 안 하는 게 가장 좋습니다)
+        
+        if "MARKET CAP" in col_upper:
+            config[col] = st.column_config.TextColumn("시총", help="Finviz 원본 데이터")
             
-            # 숫자로 변환 (변환 실패 시 0)
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-            
-            # 100 곱하기 (값이 이미 100 근처라면(예: 103.47) 곱하지 않고, 소수점(0.12)이라면 곱함)
-            # 하지만 무조건 곱하기를 원하신다면 아래 줄만 남기세요.
-            # df[col] = df[col] * 100 
-            
-            config[col] = st.column_config.NumberColumn(
-                col, 
-                format="%.2f%%", 
-                help=f"{col} (%)"
-            )
-
-        # 2. 시가총액 (무조건 10억으로 나누기)
-        elif "MARKET CAP" in col_upper:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0) / 1e9
-            config[col] = st.column_config.NumberColumn("시총($B)", format="$%.2f B")
-
-        # 3. 나머지는 이전과 동일
-        elif any(x in col_upper for x in ["P/E", "P/B", "P/S", "P/C", "PEG", "PRICE", "BETA", "RELATIVE"]):
-            config[col] = st.column_config.NumberColumn(col, format="%.2f")
-        elif "VOLUME" in col_upper:
-            config[col] = st.column_config.NumberColumn(col, format="%d")
-        elif "TOTAL_SCORE" in col_upper:
-            config[col] = st.column_config.NumberColumn("스코어", format="%.2f")
+        elif any(x in col_upper for x in ["PERF", "ROE", "MARGIN", "YIELD", "GROWTH"]):
+            config[col] = st.column_config.TextColumn(col, help="Finviz 원본 데이터")
             
     return config
 
@@ -617,15 +593,22 @@ with st.sidebar:
 if run_btn:
     raw_df = fetch_data(cap_option, selected_sectors, selected_industries, excluded_countries)
     if raw_df is not None and not raw_df.empty:
+        # 1. 계산용 숫자 데이터 생성
         processed_df = calculate_advanced_metrics(raw_df)
-        # 세션 스테이트에 결과 저장
-        st.session_state.final_df = apply_v2_scoring(processed_df, use_custom_strategy, custom_weights)
-        # 분석이 새로 실행되면 선택된 티커 초기화
-        st.session_state.selected_ticker = None 
-    else:
-        st.error("❌ 조건에 맞는 종목이 없습니다. 필터를 완화해보세요.")
-        st.session_state.final_df = None
-        st.stop()
+        
+        # 2. 스코어링 적용 (계산된 수치 기반)
+        scored_df = apply_v2_scoring(processed_df, use_custom_strategy, custom_weights)
+        
+        # 3. [중요] '원본 문자열'과 '계산된 스코어' 합치기
+        # 계산에 썼던 숫자 데이터 대신, Finviz에서 가져온 raw_df의 컬럼들을 다시 매칭합니다.
+        final_display = pd.merge(
+            scored_df[['Ticker', 'Total_Score']], # 스코어 결과만 가져옴
+            raw_df, # Finviz 원본 (문자열 형태 % 등 그대로 있음)
+            on='Ticker', 
+            how='left'
+        ).sort_values("Total_Score", ascending=False)
+
+        st.session_state.final_df = final_display
 
 # --- 9. 결과 출력부 ---
 if 'final_df' in st.session_state and st.session_state.final_df is not None:
