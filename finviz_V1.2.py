@@ -685,7 +685,7 @@ if 'final_df' in st.session_state and st.session_state.final_df is not None:
                     
                     if not sector_df.empty:
                         sector_df['Rank'] = sector_df.index + 1
-                        current_config = get_column_config(display_df)                        
+                        current_sector_config = get_column_config(sector_df)
 
                         # [핵심 수정] 우선순위 지표 결정
                         if use_custom_strategy and custom_weights:
@@ -710,7 +710,7 @@ if 'final_df' in st.session_state and st.session_state.final_df is not None:
                             use_container_width=True,
                             on_select="rerun",
                             selection_mode="single-row",
-                            column_config=current_config,  # <--- 이 부분이 핵심입니다!
+                            column_config=current_sector_config,  # <--- 이 부분이 핵심입니다!
                             key=f"sec_table_{sector_name}"
                         )
                         
