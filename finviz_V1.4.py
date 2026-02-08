@@ -803,6 +803,7 @@ if 'final_df' in st.session_state and st.session_state.final_df is not None:
         event = st.dataframe(
             display_df.style.apply(highlight_custom), 
             use_container_width=True,
+            height=600,
             on_select="rerun",
             selection_mode="single-row", 
             column_config=current_config,  # <--- 이 부분이 핵심입니다!
@@ -847,6 +848,7 @@ if 'final_df' in st.session_state and st.session_state.final_df is not None:
                         sec_event = st.dataframe(
                             sector_df.style.apply(highlight_priority), 
                             use_container_width=True,
+                            height=600,
                             on_select="rerun",
                             selection_mode="single-row",
                             column_config=current_sector_config,  # <--- 이 부분이 핵심입니다!
@@ -1031,7 +1033,7 @@ if st.session_state.get('selected_ticker'):
                                 st.dataframe(processed_y, column_config={
                                     "Trend": st.column_config.BarChartColumn("Trend", width="small"),
                                     "Current TTM": st.column_config.Column("Current TTM", width="small")
-                                }, use_container_width=True)
+                                }, use_container_width=True, height=800)
                         
                         # 2. 분기 탭
                         with sub_tabs[1]:
@@ -1040,7 +1042,7 @@ if st.session_state.get('selected_ticker'):
                                 st.dataframe(processed_q, column_config={
                                     "Trend": st.column_config.BarChartColumn("Trend", width="small"),
                                     "Current TTM": st.column_config.Column("Current TTM", width="small")
-                                }, use_container_width=True)
+                                }, use_container_width=True, height=800)
                                 
             except Exception as e:
                 st.error(f"오류 발생: {e}")
