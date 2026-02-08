@@ -28,7 +28,8 @@ st.markdown("""
 
 # --- 1. 페이지 설정 및 상수 정의 ---
 st.set_page_config(page_title="Stock Strategy Analyzer", layout="wide")
-st.title("📊 Quant 투자 종목 선정")
+st.image("banner.png", use_container_width=True)
+#st.markdown("## 📊 Quant 투자 종목 선정")
 
 # Finviz 섹터-산업 매핑 데이터
 SECTOR_INDUSTRY_MAP = {
