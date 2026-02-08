@@ -76,6 +76,30 @@ st.markdown("""
     .stAppDeployButton {display:none !important;}
     /* 하단 푸터 숨기기 */
     footer {visibility: hidden !important;}
+            /* 1. 우측 하단 'Manage app' 버튼 및 호스팅 정보 숨기기 */
+    footer {
+        display: none !important;
+    }
+
+    /* 2. 우측 상단 햄버거 메뉴 및 툴바 전체 숨기기 (완전 깔끔하게) */
+    #MainMenu {
+        visibility: hidden !important;
+    }
+    
+    header[data-testid="stHeader"] {
+        visibility: hidden !important;
+        height: 0px !important;
+    }
+
+    /* 3. 배포 시 나타나는 우측 하단 툴바(Deploy 버튼 등) 제거 */
+    .stDeployButton {
+        display: none !important;
+    }
+    
+    /* 4. 워터마크 및 기타 하단 요소 제거 */
+    div[data-testid="stStatusWidget"] {
+        visibility: hidden !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
