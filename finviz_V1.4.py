@@ -10,8 +10,40 @@ from finvizfinance.screener.technical import Technical
 import yfinance as yf
 import plotly.express as px
 
+
+
 st.set_page_config(layout="wide")
 
+# 상단 공백 제거를 위한 CSS
+st.markdown("""
+    <style>
+    /* 1. 기본 앱 헤더(메뉴 버튼 등) 여백 제거 */
+    .stAppHeader {
+        height: 0px !important;
+        display: none !important;
+    }
+    
+    /* 2. 메인 컨텐츠 영역의 상단 패딩 제거 */
+    .stMainBlockContainer {
+        padding-top: 0rem !important;
+        padding-bottom: 0rem !important;
+        padding-left: 1rem !important; /* 좌우 여백은 가독성을 위해 살짝 유지 */
+        padding-right: 1rem !important;
+    }
+
+    /* 3. 이미지 위쪽의 불필요한 간격 제거 */
+    [data-testid="stVerticalBlock"] > div:first-child {
+        margin-top: -1rem !important;
+    }
+    
+    /* 모바일에서 이미지가 너무 커 보이지 않도록 조정 */
+    @media (max-width: 480px) {
+        .stMainBlockContainer {
+            padding-top: 0rem !important;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
 # 2. 우측 상단 메뉴와 GitHub 아이콘을 숨기는 CSS
 st.markdown("""
     <style>
