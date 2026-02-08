@@ -17,65 +17,39 @@ st.set_page_config(layout="wide")
 # 상단 공백 제거를 위한 CSS
 st.markdown("""
     <style>
-    /* 1. 사용자 최적화 여백 복구 (가장 좋다고 하신 설정) */
+    /* 여백 설정 유지 */
     .stMainBlockContainer {
         padding-top: 1.5rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
 
-    header[data-testid="stHeader"] {
-        background: rgba(0,0,0,0);
-        height: 0px;
+    /* 아이콘 및 툴바 정밀 타격 */
+    /* 1. 하단 툴바 전체 (종이배 아이콘 포함) */
+    [data-testid="stToolbar"], .stToolbar {
+        display: none !important;
+        height: 0px !important;
+        width: 0px !important;
     }
 
-    /* 2. 안전한 아이콘 제거 (화면 전체를 지우지 않는 방식) */
-    /* 우측 하단 툴바(빨간 종이배)와 상태 위젯(분홍 아이콘)만 지움 */
-    [data-testid="stToolbar"], 
-    [data-testid="stStatusWidget"],
-    .stAppDeployButton,
-    footer,
-    #MainMenu {
+    /* 2. 상태 위젯 (분홍색 아이콘 포함) */
+    [data-testid="stStatusWidget"], .stStatusWidget {
         display: none !important;
         visibility: hidden !important;
     }
 
-    /* 모바일 하단 장식선 제거 */
-    [data-testid="stDecoration"] {
+    /* 3. 모바일 하단 플로팅 요소 강제 숨김 */
+    div[class*="st-emotion-cache-1ky89f3"], 
+    div[class*="st-emotion-cache-18ni7ap"] {
         display: none !important;
     }
 
-    /* 3. -----------------------------------------------------------
-       모바일 전용 최적화 (사용자 선호 여백 설정 유지)
-    ----------------------------------------------------------- */
+    /* 4. 기타 헤더/푸터 */
+    header, footer, #MainMenu { display: none !important; }
+    
     @media (max-width: 480px) {
-        .stMainBlockContainer {
-            padding-top: 0rem !important;
-        }
-
-        [data-testid="stImage"] {
-            margin-top: -1rem !important;
-            margin-bottom: 0.5rem !important;
-        }
-
-        h2 {
-            margin-top: 0rem !important;
-            margin-bottom: -0.5rem !important;
-            font-size: 1.4rem !important;
-        }
-
-        .stExpander {
-            margin-top: 0rem !important;
-        }
-        
-        [data-testid="stVerticalBlock"] {
-            gap: 0.5rem !important;
-        }
-
-        /* 모바일 전용 하단 플로팅 버튼 레이어만 타겟팅 */
-        .st-emotion-cache-1ky89f3 {
-            display: none !important;
-        }
+        .stMainBlockContainer { padding-top: 0rem !important; }
+        [data-testid="stImage"] { margin-top: -1rem !important; }
     }
     </style>
     """, unsafe_allow_html=True)
