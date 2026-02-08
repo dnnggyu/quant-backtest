@@ -9,6 +9,22 @@ from finvizfinance.screener.performance import Performance
 from finvizfinance.screener.technical import Technical
 import yfinance as yf
 
+st.set_page_config(layout="wide")
+
+# 2. 우측 상단 메뉴와 GitHub 아이콘을 숨기는 CSS
+st.markdown("""
+    <style>
+    /* 상단 헤더 전체 숨기기 */
+    header {visibility: hidden !important;}
+    /* 메뉴 버튼 숨기기 */
+    #MainMenu {visibility: hidden !important;}
+    /* 배포 버튼(GitHub 아이콘 포함) 숨기기 */
+    .stAppDeployButton {display:none !important;}
+    /* 하단 푸터 숨기기 */
+    footer {visibility: hidden !important;}
+    </style>
+""", unsafe_allow_html=True)
+
 # --- 1. 페이지 설정 및 상수 정의 ---
 st.set_page_config(page_title="Stock Strategy Analyzer", layout="wide")
 st.title("📊 Quant 투자 종목 선정")
