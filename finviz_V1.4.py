@@ -17,39 +17,48 @@ st.set_page_config(layout="wide")
 # 상단 공백 제거를 위한 CSS
 st.markdown("""
     <style>
-    /* 1. 전체 컨테이너 상단 여백 제거 */
+    /* 1. 전체 앱 상단 여백 제거 */
     .stMainBlockContainer {
-        padding-top: 1rem !important; /* 0으로 하면 너무 붙으니 1rem 정도 추천 */
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0rem !important;
     }
 
-    /* 2. 최상단 헤더 영역 숨기기 (공백 원인) */
-    header[data-testid="stHeader"] {
-        background: rgba(0,0,0,0);
-        height: 0px;
-    }
-
-    /* 3. 이미지와 그 아래 요소(필터 박스) 사이의 간격 확보 */
-    /* 이미지 요소를 감싸는 div에 아래쪽 여백 추가 */
+    /* 2. 이미지(배너) 마진 조절 */
     [data-testid="stImage"] {
-        margin-bottom: 2rem !important; /* 이미지 아래에 충분한 공간 확보 */
-        margin-top: -1rem !important;    /* 이미지는 위로 붙임 */
+        margin-top: -1.5rem !important; /* 위로 더 밀착 */
+        margin-bottom: -1rem !important; /* 아래 글씨와의 간격 축소 */
     }
 
-    /* 4. 필터 박스(Expander) 제목이 겹치지 않도록 설정 */
-    .st-emotion-cache-1h9usn2, .stExpander {
-        margin-top: 1.5rem !important; 
-        border-top: 1px solid #ddd; /* 경계선 추가로 구분감 생성 */
+    /* 3. '퀀트 스크리너 설정' 타이틀(h2) 여백 및 크기 조절 */
+    h2 {
+        margin-top: -1rem !important;
+        margin-bottom: -0.5rem !important;
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+        font-size: 1.5rem !important; /* 모바일용 크기 축소 */
     }
-    
-    /* 모바일 대응: 글자 크기가 커서 겹쳐 보일 수 있으므로 조정 */
+
+    /* 4. '분석 조건...' 박스(Expander) 상단 여백 제거 */
+    .stExpander {
+        margin-top: -1rem !important;
+    }
+
+    /* 5. 엘리먼트들 사이의 기본 간격(Gap) 강제 축소 */
+    [data-testid="stVerticalBlock"] {
+        gap: 0.5rem !important;
+    }
+
+    /* 모바일 기기(480px 이하) 추가 최적화 */
     @media (max-width: 480px) {
         .stMainBlockContainer {
-            padding-top: 0.5rem !important;
+            padding-top: 0rem !important;
+        }
+        h2 {
+            font-size: 1.3rem !important;
+            margin-bottom: -0.8rem !important;
         }
         [data-testid="stImage"] {
-            margin-bottom: 1.5rem !important;
+            margin-top: -1.8rem !important;
         }
     }
     </style>
