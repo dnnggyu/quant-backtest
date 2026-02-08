@@ -17,48 +17,48 @@ st.set_page_config(layout="wide")
 # 상단 공백 제거를 위한 CSS
 st.markdown("""
     <style>
-    /* 1. 전체 앱 상단 여백 제거 */
+    /* [기존] 전체 컨테이너 및 헤더 설정 (PC 유지) */
     .stMainBlockContainer {
-        padding-top: 0.5rem !important;
-        padding-bottom: 0rem !important;
+        padding-top: 1.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
 
-    /* 2. 이미지(배너) 마진 조절 */
-    [data-testid="stImage"] {
-        margin-top: -1.5rem !important; /* 위로 더 밀착 */
-        margin-bottom: -1rem !important; /* 아래 글씨와의 간격 축소 */
+    header[data-testid="stHeader"] {
+        background: rgba(0,0,0,0);
+        height: 0px;
     }
 
-    /* 3. '퀀트 스크리너 설정' 타이틀(h2) 여백 및 크기 조절 */
-    h2 {
-        margin-top: -1rem !important;
-        margin-bottom: -0.5rem !important;
-        padding-top: 0px !important;
-        padding-bottom: 0px !important;
-        font-size: 1.5rem !important; /* 모바일용 크기 축소 */
-    }
-
-    /* 4. '분석 조건...' 박스(Expander) 상단 여백 제거 */
-    .stExpander {
-        margin-top: -1rem !important;
-    }
-
-    /* 5. 엘리먼트들 사이의 기본 간격(Gap) 강제 축소 */
-    [data-testid="stVerticalBlock"] {
-        gap: 0.5rem !important;
-    }
-
-    /* 모바일 기기(480px 이하) 추가 최적화 */
+    /* -----------------------------------------------------------
+       모바일 전용 최적화 (화면 너비 480px 이하)
+    ----------------------------------------------------------- */
     @media (max-width: 480px) {
+        /* 1. 컨테이너 상단 공백 제거 */
         .stMainBlockContainer {
             padding-top: 0rem !important;
         }
-        h2 {
-            font-size: 1.3rem !important;
-            margin-bottom: -0.8rem !important;
-        }
+
+        /* 2. 이미지 마진 최적화 (이미지 아래 글씨와의 간격 줄임) */
         [data-testid="stImage"] {
-            margin-top: -1.8rem !important;
+            margin-top: -1rem !important;
+            margin-bottom: 0.5rem !important; /* 이미지 바로 아래 글씨와의 간격 */
+        }
+
+        /* 3. '퀀트 스크리너 설정' 타이틀(h2) 마진 조절 */
+        h2 {
+            margin-top: 0rem !important;
+            margin-bottom: -0.5rem !important; /* 타이틀과 아래 박스 사이의 간격 줄임 */
+            font-size: 1.4rem !important; /* 글씨 크기도 모바일에 맞게 살짝 축소 */
+        }
+
+        /* 4. '분석 조건...' 박스(Expander) 위치 조절 */
+        .stExpander {
+            margin-top: 0rem !important; /* 위 글씨와 겹치지 않으면서 바짝 붙임 */
+        }
+        
+        /* 5. Streamlit 기본 수직 간격(Gap) 축소 */
+        [data-testid="stVerticalBlock"] {
+            gap: 0.5rem !important;
         }
     }
     </style>
