@@ -703,7 +703,7 @@ with st.expander("⚙️ 분석 조건 및 커스텀 전략 설정", expanded=Tr
         use_custom_strategy = st.checkbox("나만의 전략 활성화", value=False, 
                                         help="섹터별 자동 전략 대신 직접 지표와 가중치를 설정합니다.")
         if not use_custom_strategy:
-            st.info("💡 현재 **섹터별 자동 최적화 전략**이 적용 중입니다.")
+            st.info("💡현재 **섹터별 자동 최적화 전략** 적용 중입니다.")
 
     # 2. 커스텀 전략 상세 설정 (체크박스 활성화 시에만 표시)
     custom_weights = {}
