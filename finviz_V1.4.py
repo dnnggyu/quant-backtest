@@ -14,94 +14,71 @@ import plotly.express as px
 
 st.set_page_config(layout="wide")
 
-# 상단 공백 제거를 위한 CSS
 st.markdown("""
     <style>
-    /* [기존] 전체 컨테이너 및 헤더 설정 (PC 유지) */
+    /* [1] 전역 설정: 헤더, 푸터, 메뉴, 배포 버튼 완전 제거 */
+    header, #MainMenu, .stAppDeployButton, footer {
+        visibility: hidden !important;
+        display: none !important;
+    }
+
+    /* [2] 'Created by / Hosted with' 배지 및 상태 위젯 제거 */
+    div[data-testid="stStatusWidget"], .stStatusWidget {
+        visibility: hidden !important;
+        display: none !important;
+    }
+    
+    /* [3] 모바일 하단 무지개색 라인 및 장식 요소 제거 */
+    div[data-testid="stDecoration"] {
+        display: none !important;
+    }
+
+    /* [4] 컨테이너 기본 패딩 (PC용) */
     .stMainBlockContainer {
         padding-top: 1.5rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
 
-    header[data-testid="stHeader"] {
-        background: rgba(0,0,0,0);
-        height: 0px;
-    }
-
     /* -----------------------------------------------------------
        모바일 전용 최적화 (화면 너비 480px 이하)
     ----------------------------------------------------------- */
     @media (max-width: 480px) {
-        /* 1. 컨테이너 상단 공백 제거 */
+        /* 컨테이너 상단 공백 제거 */
         .stMainBlockContainer {
             padding-top: 0rem !important;
         }
 
-        /* 2. 이미지 마진 최적화 (이미지 아래 글씨와의 간격 줄임) */
+        /* 이미지 마진 최적화 */
         [data-testid="stImage"] {
             margin-top: -1rem !important;
-            margin-bottom: 0.5rem !important; /* 이미지 바로 아래 글씨와의 간격 */
+            margin-bottom: 0.5rem !important;
         }
 
-        /* 3. '퀀트 스크리너 설정' 타이틀(h2) 마진 조절 */
+        /* 타이틀(h2) 마진 조절 */
         h2 {
             margin-top: 0rem !important;
-            margin-bottom: -0.5rem !important; /* 타이틀과 아래 박스 사이의 간격 줄임 */
-            font-size: 1.4rem !important; /* 글씨 크기도 모바일에 맞게 살짝 축소 */
+            margin-bottom: -0.5rem !important;
+            font-size: 1.4rem !important;
         }
 
-        /* 4. '분석 조건...' 박스(Expander) 위치 조절 */
+        /* 분석 조건 박스 위치 조절 */
         .stExpander {
-            margin-top: 0rem !important; /* 위 글씨와 겹치지 않으면서 바짝 붙임 */
+            margin-top: 0rem !important;
         }
         
-        /* 5. Streamlit 기본 수직 간격(Gap) 축소 */
+        /* 기본 수직 간격 축소 */
         [data-testid="stVerticalBlock"] {
             gap: 0.5rem !important;
+        }
+
+        /* 모바일에서 하단 배지가 강제로 살아나는 것 방지 */
+        div[data-testid="stStatusWidget"] {
+            display: none !important;
         }
     }
     </style>
     """, unsafe_allow_html=True)
-
-
-# 2. 우측 상단 메뉴와 GitHub 아이콘을 숨기는 CSS
-st.markdown("""
-    <style>
-    /* 상단 헤더 전체 숨기기 */
-    header {visibility: hidden !important;}
-    /* 메뉴 버튼 숨기기 */
-    #MainMenu {visibility: hidden !important;}
-    /* 배포 버튼(GitHub 아이콘 포함) 숨기기 */
-    .stAppDeployButton {display:none !important;}
-    /* 하단 푸터 숨기기 */
-    footer {visibility: hidden !important;}
-            /* 1. 우측 하단 'Manage app' 버튼 및 호스팅 정보 숨기기 */
-    footer {
-        display: none !important;
-    }
-
-    /* 2. 우측 상단 햄버거 메뉴 및 툴바 전체 숨기기 (완전 깔끔하게) */
-    #MainMenu {
-        visibility: hidden !important;
-    }
-    
-    header[data-testid="stHeader"] {
-        visibility: hidden !important;
-        height: 0px !important;
-    }
-
-    /* 3. 배포 시 나타나는 우측 하단 툴바(Deploy 버튼 등) 제거 */
-    .stDeployButton {
-        display: none !important;
-    }
-    
-    /* 4. 워터마크 및 기타 하단 요소 제거 */
-    div[data-testid="stStatusWidget"] {
-        visibility: hidden !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
 # --- 1. 페이지 설정 및 상수 정의 ---
 st.set_page_config(page_title="Stock Strategy Analyzer", layout="wide")
