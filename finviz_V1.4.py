@@ -8,6 +8,7 @@ from finvizfinance.screener.ownership import Ownership
 from finvizfinance.screener.performance import Performance
 from finvizfinance.screener.technical import Technical
 import yfinance as yf
+import plotly.express as px
 
 st.set_page_config(layout="wide")
 
@@ -739,32 +740,11 @@ if run_btn:
         # [최종] 100을 곱해서 % 단위로 만들 항목 리스트
         pct_to_100_cols = [
             # 1. 수익률 (Performance) 계열 - 신규 추가 및 명칭 수정
-            'Performance (Week)', 
-            'Performance (Month)', 
-            'Performance (Quarter)', 
-            'Performance (Half Year)', 
-            'Performance (Year)', 
-            'Performance (YTD)',
-            'Change', 
-
+            'Performance (Week)', 'Performance (Month)', 'Performance (Quarter)', 'Performance (Half Year)', 'Performance (Year)', 'Performance (YTD)', 'Change', 
             # 2. 수익성 및 퀄리티 (Quality) 계열
-            'Return on Assets', 
-            'Return on Equity', 
-            'Gross Margin', 
-            'Oper Margin',      # 'Oper M'에서 매핑 명칭으로 수정
-            'Profit Margin',    # 'Profit M'에서 매핑 명칭으로 수정
-            'FCF_Yield', 
-            'Dividend Yield',   # 'Dividend'에서 매핑 명칭으로 수정
-
+            'Return on Assets', 'Return on Equity', 'Gross Margin', 'Oper Margin', 'Profit Margin','FCF_Yield', 'Dividend Yield', 
             # 3. 기술적 지표 및 변동성 (Technicals)
-            'Volatility (Week)', 
-            'Volatility (Month)',
-            '20-Day Simple Moving Average', 
-            '50-Day Simple Moving Average', 
-            '200-Day Simple Moving Average',
-            '52W High', 
-            '52W Low',
-
+            'Volatility (Week)', 'Volatility (Month)','20-Day Simple Moving Average', '50-Day Simple Moving Average', '200-Day Simple Moving Average', '52W High', '52W Low',
             # 4. 수급 및 기타
             'Inst_Inside_Buy'
         ]
@@ -787,6 +767,69 @@ if 'final_df' in st.session_state and st.session_state.final_df is not None:
     final_df = st.session_state.final_df
     
     st.success("✅ 분석 완료! 표의 행(Row)을 클릭하면 하단에 상세 정보가 나타납니다.")
+    
+    # ---------------- 여기서부터 교체 (섹터별 전략 동적 표시) ----------------
+    with st.expander("📖 전략 정보(사용 지표 및 가중치)", expanded=False):
+        if use_custom_strategy and custom_weights:
+            # --- [1] 커스텀 전략 (나만의 전략) ---
+            active_weights = {k: v * 100 for k, v in custom_weights.items() if v > 0}
+            if active_weights:
+                st.markdown("#### 🛠️ 커스텀 가중치 분석")
+                df_weights = pd.DataFrame([active_weights]).T.reset_index()
+                df_weights.columns = ['지표', '비중(%)']
+                
+                fig = px.pie(df_weights, values='비중(%)', names='지표', 
+                             hole=0.45, title="현재 적용된 커스텀 전략",
+                             color_discrete_sequence=px.colors.qualitative.Pastel)
+                fig.update_traces(textposition='inside', textinfo='percent+label')
+                fig.update_layout(height=400, margin=dict(t=50, b=20, l=20, r=20))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("⚠️ 설정된 커스텀 가중치가 없습니다.")
+
+        else:
+            # --- [2] 일반 섹터 모드 (무조건 탭 활용) ---
+            target_sectors = selected_sectors if selected_sectors else list(STRATEGIES.keys())
+            
+            # 섹터 이름을 기반으로 탭 생성 (모바일에서 가로 스크롤 가능)
+            st.markdown(f"#### 🌐 섹터별 자동 가중치 분석")
+            sector_tabs = st.tabs(target_sectors)
+            
+            for i, s_name in enumerate(target_sectors):
+                with sector_tabs[i]:
+                    s_logic = STRATEGIES.get(s_name, {})
+                    df_s = pd.DataFrame([s_logic]).T.reset_index()
+                    df_s.columns = ['지표', '비중(%)']
+                    
+                    # 2컬럼 레이아웃: 왼쪽(차트), 오른쪽(상세 수치 리스트)
+                    col1, col2 = st.columns([1.2, 1])
+                    
+                    with col1:
+                        fig = px.pie(df_s, values='비중(%)', names='지표', 
+                                     hole=0.5, 
+                                     color_discrete_sequence=px.colors.qualitative.Safe)
+                        fig.update_layout(
+                            showlegend=False, 
+                            height=300, 
+                            margin=dict(t=10, b=10, l=10, r=10),
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            plot_bgcolor='rgba(0,0,0,0)'
+                        )
+                        fig.update_traces(textinfo='percent+label', textfont_size=11)
+                        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                    
+                    with col2:
+                        st.markdown(f"**📍 {s_name} 핵심 로직**")
+                        # 가중치가 높은 순서대로 내림차순 정렬하여 텍스트 표시
+                        sorted_items = sorted(s_logic.items(), key=lambda x: x[1], reverse=True)
+                        for metric, weight in sorted_items:
+                            # 가중치가 높은 지표는 강조(bold)
+                            st.write(f"- {metric}: **{weight}%**")
+                        
+                        st.caption("해당 섹터의 특성을 반영한 가중치입니다.")
+                        st.caption("나만의 전략 활성화 체크 시 전략을 만들 수 있습니다.")
+    # ---------------- 여기까지 교체 ----------------
+
     main_tabs = st.tabs(["📊 통합 순위", "📁 섹터별 상세 순위"])
 
     # 공통 고정 컬럼 정의
