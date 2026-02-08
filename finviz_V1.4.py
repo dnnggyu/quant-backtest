@@ -396,7 +396,7 @@ def safe_num(series):
 def get_column_config(df):
     config = {
         # 기본 정보
-        "Rank": st.column_config.NumberColumn("순위", width="small"),
+        "Rank": st.column_config.NumberColumn("Rank", width="small"),
         "Ticker": st.column_config.TextColumn("Ticker", width="small"),
         "Company": st.column_config.TextColumn("Company", width="medium"),
         
@@ -882,41 +882,37 @@ if 'final_df' in st.session_state and st.session_state.final_df is not None:
 
     # --- Tab 1: 통합 순위 ---
     with main_tabs[0]:
-        display_df = final_df.head(50).copy().reset_index(drop=True)
-        display_df['Rank'] = display_df.index + 1
+        # Rank 생성 로직 삭제 및 Ticker 인덱스 설정
+        display_df = final_df.head(50).copy().set_index('Ticker')
 
         current_config = get_column_config(display_df)        
 
-        # [수정] 우선순위 지표 결정 로직
         if use_custom_strategy and custom_weights:
-            # 커스텀 전략 사용 시: 내가 선택한 지표들
             priority_metrics = [m for m in custom_weights.keys() if m in display_df.columns]
         else:
-            # 기본 모드: 전체 지표 중 상위권에 보여줄 특정 핵심 지표가 있다면 추가 가능 (현재는 공백)
             priority_metrics = []
         
-        # 컬럼 순서 재구성
-        other_cols = [c for c in display_df.columns if c not in base_cols + priority_metrics]
-        display_df = display_df[base_cols + priority_metrics + other_cols]
+        # base_cols에서 Rank와 Ticker(인덱스) 제외하고 순서 배치
+        display_cols = [c for c in base_cols if c not in ['Rank', 'Ticker']] + priority_metrics
+        other_cols = [c for c in display_df.columns if c not in display_cols]
+        display_df = display_df[display_cols + other_cols]
 
-        # 커스텀 지표 강조 스타일링
         def highlight_custom(s):
             return ['background-color: #f0f2f6' if s.name in priority_metrics else '' for _ in s]
 
-        
         event = st.dataframe(
             display_df.style.apply(highlight_custom), 
             use_container_width=True,
             height=600,
             on_select="rerun",
             selection_mode="single-row", 
-            column_config=current_config,  # <--- 이 부분이 핵심입니다!
+            column_config=current_config,
             key="main_table_final"
         )
 
         if event and len(event.get("selection", {}).get("rows", [])) > 0:
             selected_idx = event["selection"]["rows"][0]
-            st.session_state.selected_ticker = display_df.iloc[selected_idx]['Ticker']
+            st.session_state.selected_ticker = display_df.index[selected_idx]
 
     # --- Tab 2: 섹터별 상세 순위 ---
     with main_tabs[1]:
@@ -925,28 +921,24 @@ if 'final_df' in st.session_state and st.session_state.final_df is not None:
             sub_tabs = st.tabs(sector_tabs_list)
             for i, sector_name in enumerate(sector_tabs_list):
                 with sub_tabs[i]:
-                    sector_df = final_df[final_df['Sector'] == sector_name].head(30).copy().reset_index(drop=True)
+                    # Rank 생성 없이 바로 Ticker 인덱스 설정
+                    sector_df = final_df[final_df['Sector'] == sector_name].head(30).copy().set_index('Ticker')
                     
                     if not sector_df.empty:
-                        sector_df['Rank'] = sector_df.index + 1
                         current_sector_config = get_column_config(sector_df)
 
-                        # [핵심 수정] 우선순위 지표 결정
                         if use_custom_strategy and custom_weights:
-                            # 1순위: 커스텀 지표
                             priority_metrics = [m for m in custom_weights.keys() if m in sector_df.columns]
                         else:
-                            # 2순위: 기존 섹터별 전략 지표
                             priority_metrics = [m for m in STRATEGIES.get(sector_name, {}).keys() if m in sector_df.columns]
                         
-                        # 컬럼 재배치
-                        other_cols = [c for c in sector_df.columns if c not in base_cols + priority_metrics]
-                        ordered_cols = base_cols + priority_metrics + other_cols
-                        sector_df = sector_df[ordered_cols]
+                        # 컬럼 재배치 (Rank 제외)
+                        display_cols = [c for c in base_cols if c not in ['Rank', 'Ticker']] + priority_metrics
+                        other_cols = [c for c in sector_df.columns if c not in display_cols]
+                        sector_df = sector_df[display_cols + other_cols]
 
-                        # 스타일링: 우선순위 지표 컬럼에 연녹색 음영
                         def highlight_priority(s):
-                            color = '#e6ffed' if use_custom_strategy else '#f0faff' # 커스텀은 연녹색, 기본은 연푸른색
+                            color = '#e6ffed' if use_custom_strategy else '#f0faff'
                             return [f'background-color: {color}' if s.name in priority_metrics else '' for _ in s]
 
                         sec_event = st.dataframe(
@@ -955,13 +947,13 @@ if 'final_df' in st.session_state and st.session_state.final_df is not None:
                             height=600,
                             on_select="rerun",
                             selection_mode="single-row",
-                            column_config=current_sector_config,  # <--- 이 부분이 핵심입니다!
+                            column_config=current_sector_config,
                             key=f"sec_table_{sector_name}"
                         )
                         
                         if sec_event and len(sec_event.get("selection", {}).get("rows", [])) > 0:
                             s_idx = sec_event["selection"]["rows"][0]
-                            st.session_state.selected_ticker = sector_df.iloc[s_idx]['Ticker']
+                            st.session_state.selected_ticker = sector_df.index[s_idx]
                     else:
                         st.info(f"{sector_name} 섹터에 해당하는 종목이 없습니다.")
                     
