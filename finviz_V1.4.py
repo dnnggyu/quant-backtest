@@ -348,10 +348,18 @@ DISPLAY_MAP = {
 
 # 1. Finviz 기본 제공 지표 중 스코어링에 쓸 지표
 BASIC_METRICS = [
-    "P/E", "Forward P/E", "PEG", "P/S", "P/B", "P/Cash", "P/Free Cash Flow",
-    "Dividend Yield", "EPS Growth Next Year", "ROE", "ROA", "ROI", 
-    "Gross Margin", "Operating Margin", "Profit Margin", "Debt/Equity", 
-    "Current Ratio", "Relative Strength Index (14)", "Volatility (Month)", "Short Float"
+    "Performance (Year)", "Performance (Half Year)", "Performance (Month)", 
+    "Performance (Week)", "Performance (YTD)", "Performance (Quarter)",
+    "Gross Margin", "Oper Margin", "Profit Margin", 
+    "Return on Assets", "Return on Equity", "Return on Invested Capital",
+    "P/Free Cash Flow", "Institutional Transactions", "Insider Transactions", 
+    "Short Float", "Relative Volume", "Forward P/E", "P/B", "P/S", "P/C",
+    "EPS Growth Next Year", "EPS Growth Next 5 Years", "EPS Growth This Year",
+    "20-Day Simple Moving Average", "50-Day Simple Moving Average",
+    "200-Day Simple Moving Average", "Relative Strength Index (14)",
+    "Volatility (Month)", "Volatility (Week)", "Sales Growth Past 5 Years", 
+    "Current Ratio", "PEG", "Dividend Yield", "Total Debt/Equity", 
+    "52W High", "52W Low"
 ]
 
 # 2. calculate_advanced_metrics 함수에서 우리가 직접 만든 지표
@@ -1143,5 +1151,6 @@ if st.session_state.get('selected_ticker'):
                 st.error(f"오류 발생: {e}")
 
     
+
 
     
