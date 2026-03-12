@@ -36,7 +36,7 @@ def get_all_financial_source(tickers):
         # 1. 서버 차단을 피하기 위해 실행 시점을 랜덤하게 분산 (중요!)
         import random
         # 2, 3, 4, 5 중에서 하나를 무작위 선택
-        time.sleep(random.choice([2.0, 3.0]))
+        time.sleep(random.choice([2.0, 2.5, 3.0, 3.5]))
         
         try:
             # 2. session을 넣지 말고, 직접 Ticker 객체 생성
@@ -69,7 +69,7 @@ def get_all_financial_source(tickers):
     # 6. 클라우드 서버에서는 병렬 처리를 '포기'해야 합니다. 
     # 여러 명이 동시에 요청하는 것처럼 보이면 바로 차단당합니다.
     # 속도는 느리지만 '확실하게' 가져오기 위해 max_workers=1 또는 2로 낮춥니다.
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         results = list(executor.map(fetch, tickers))
     
     for t, val in results:
@@ -485,3 +485,4 @@ if run_analysis:
                     )
 else:
     st.info("섹터를 선택하고 백테스트를 실행하세요.")
+
