@@ -87,7 +87,7 @@ def fetch_ml_data_optimized_pit(tickers, ref_date, full_hist_data, source_cache,
             
             ticker_all_prices = full_hist_data[ticker].dropna()
             # [수정] 기준일(ref_dt) 이전의 데이터만 사용하여 지표 계산
-            hist = ticker_all_prices[ticker_all_prices.index < ref_dt].tail(504)
+            hist = ticker_all_prices[ticker_all_prices.index < ref_dt].tail(252)
             if len(hist) < 252: continue
             
             close_now = hist['Close'].iloc[-1]
@@ -132,7 +132,7 @@ def fetch_ml_data_optimized_pit(tickers, ref_date, full_hist_data, source_cache,
                 'P/FCF': mkt_cap / (fcf * 4) if fcf > 0 else 0,
                 'EV/EBITDA': ev / annual_ebitda if annual_ebitda > 0 else 0,
                 'FCF_Yield': (fcf * 4) / mkt_cap if mkt_cap != 0 else 0,
-                'ROI': (cur.get('EBIT', 0) * 4) / (bal.get('Total Assets', 1) - bal.get('Total Current Liabilities', 0)) if 'Total Current Liabilities' in bal else 0,
+                #'ROI': (cur.get('EBIT', 0) * 4) / (bal.get('Total Assets', 1) - bal.get('Total Current Liabilities', 0)) if 'Total Current Liabilities' in bal else 0,
                 'ROE': net_income / bal.get('Stockholders Equity', 1) if 'Stockholders Equity' in bal else 0,
                 'ROA': net_income / total_assets if total_assets != 0 else 0,
                 'Gross_Margin': gross_profit / revenue if revenue > 0 else 0,
@@ -209,7 +209,7 @@ with st.expander("🛠 전략 설정 및 필터링", expanded=True):
 if run_analysis:
     tickers = df_sp500[df_sp500['GICS Sector'].isin(selected_sectors)]['Symbol'].str.replace('.', '-', regex=False).tolist()
     with st.spinner("📦 데이터 수집 및 미래 참조 차단 검증 중..."):
-        full_hist_data = yf.download(tickers, start=pd.to_datetime(start_date) - timedelta(days=750), end=pd.to_datetime(end_date) + timedelta(days=40), group_by='ticker', progress=False)
+        full_hist_data = yf.download(tickers, start=pd.to_datetime(start_date) - timedelta(days=400), end=pd.to_datetime(end_date) + timedelta(days=40), group_by='ticker', progress=False)
         source_cache = get_all_financial_source(tickers)
         
         date_range = pd.date_range(start=start_date, end=end_date, freq=f'{reb_months}MS')
@@ -302,7 +302,7 @@ if run_analysis:
             st.subheader("🗓️ 리밸런싱 히스토리 분석")
             for detail in reversed(rebalance_details):
                 curr_date_obj = pd.to_datetime(detail['date'])
-                train_start = (curr_date_obj - timedelta(days=730)).strftime('%Y-%m-%d')
+                train_start = (curr_date_obj - timedelta(days=365)).strftime('%Y-%m-%d')
                 train_end = (curr_date_obj - timedelta(days=1)).strftime('%Y-%m-%d')
                 
                 # 재무 데이터 체크 (P/E, ROE 등이 모두 0이면 재무 누락으로 판단)
