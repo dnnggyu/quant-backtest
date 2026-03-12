@@ -381,5 +381,79 @@ if run_analysis:
                 st.dataframe(recommend_all[display_cols].style.background_gradient(subset=['AI_Score'], cmap='YlGn').format(precision=3), use_container_width=True, hide_index=True)
             else:
                 st.warning("실시간 추천 데이터를 생성할 수 없습니다. (데이터 부족 또는 모델 미학습)")
+
+    # --- [추가] 데이터 다운로드 섹션 ---
+            st.divider()
+            st.subheader("📥 분석 결과 내보내기")
+            down_col1, down_col2 = st.columns(2)
+
+            with down_col1:
+                # 1. 누적 수익률 데이터 다운로드
+                if not all_strategy_returns.empty:
+                    csv_returns = cum_returns.to_csv().encode('utf-8-sig') # 한글 깨짐 방지
+                    st.download_button(
+                        label="📈 누적 수익률 시계열 다운로드 (CSV)",
+                        data=csv_returns,
+                        file_name=f"ai_quant_returns_{datetime.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv",
+                        use_container_width=True
+                    )
+
+            with down_col2:
+                # 2. 최신 추천 종목 데이터 다운로드
+                if not latest_data.empty:
+                    # 추천 리스트를 점수순으로 정렬한 데이터프레임 준비
+                    csv_recommend = recommend_all[display_cols].to_csv(index=False).encode('utf-8-sig')
+                    st.download_button(
+                        label="🎯 AI 추천 종목 리스트 다운로드 (CSV)",
+                        data=csv_recommend,
+                        file_name=f"ai_recommendation_{datetime.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv",
+                        use_container_width=True
+                    )
+
+            log_col1, log_col2 = st.columns(2)
+
+            with log_col1:
+                # 3. 모든 리밸런싱 히스토리 합치기 (과거에 어떤 종목을 샀었는지)
+                if rebalance_details:
+                    history_dfs = []
+                    for detail in rebalance_details:
+                        temp_df = detail['selected_data'].copy()
+                        temp_df.insert(0, 'Rebalance_Date', detail['date']) # 날짜를 맨 앞에 삽입
+                        history_dfs.append(temp_df)
+                    
+                    full_history_df = pd.concat(history_dfs, ignore_index=True)
+                    csv_history = full_history_df.to_csv(index=False).encode('utf-8-sig')
+                    
+                    st.download_button(
+                        label="📜 전체 리밸런싱 히스토리 (CSV)",
+                        data=csv_history,
+                        file_name=f"full_rebalance_history_{datetime.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv",
+                        use_container_width=True
+                    )
+
+            with log_col2:
+                # 4. 분석 원본(Raw) 데이터 (모델이 학습/추론에 쓴 모든 지표 데이터)
+                raw_data_list = []
+                for i in range(len(date_range) - 1):
+                    curr_reb = date_range[i]
+                    # 해당 시점의 모든 종목 데이터를 다시 추출
+                    raw_step = fetch_ml_data_optimized_pit(tickers, curr_reb, full_hist_data, source_cache, is_training=False)
+                    raw_step.insert(0, 'Data_Date', curr_reb.strftime('%Y-%m-%d'))
+                    raw_data_list.append(raw_step)
+                
+                if raw_data_list:
+                    full_raw_df = pd.concat(raw_data_list, ignore_index=True)
+                    csv_raw = full_raw_df.to_csv(index=False).encode('utf-8-sig')
+                    
+                    st.download_button(
+                        label="📊 분석 원본(Raw) 데이터 다운로드 (CSV)",
+                        data=csv_raw,
+                        file_name=f"quant_raw_features_{datetime.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv",
+                        use_container_width=True
+                    )
 else:
     st.info("섹터를 선택하고 백테스트를 실행하세요.")
