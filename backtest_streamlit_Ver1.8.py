@@ -674,11 +674,10 @@ if run_analysis:
 
             # ── 상단 메타 정보 배지 행 ───────────────────────────
             m1, m2, m3, m4 = st.columns(4)
-            m1.metric("📆 리밸런싱 기준일",  detail["date"])
-            m2.metric("📈 보유 기간",        f"{period_end} ~ {next_date}")
-            m3.metric("📊 주가 학습 기간",   f"{period_start} ~ {period_end}")
-            m4.metric("🗃️ 재무 데이터",
-                      f"분기 {q_count}개 / 연간 {a_count}개 / 없음 {n_count}개")
+            m1.markdown(f"📆 **리밸런싱 기준일**<br>{detail['date']}", unsafe_allow_html=True)
+            m2.markdown(f"📈 **보유 기간**<br>{period_end} ~ {next_date}", unsafe_allow_html=True)
+            m3.markdown(f"📊 **주가 학습 기간**<br>{period_start} ~ {period_end}", unsafe_allow_html=True)
+            m4.markdown(f"🗃️ **재무 데이터**<br>분기 {q_count}개 / 연간 {a_count}개 / 없음 {n_count}개", unsafe_allow_html=True)
 
             st.divider()
 
