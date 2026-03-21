@@ -33,14 +33,14 @@ st.set_page_config(
     page_title="AI Quant Lab 2.0",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="collapsed",
 )
 
 st.markdown("""
 <style>
-    /* ── 배경 & 사이드바 숨김 ── */
+    /* ── 배경 ── */
     .stApp { background: #ffffff; }
-    section[data-testid="stSidebar"] { display: none; }
+    /* 사이드바 컨테이너는 숨기지 않고 토글 버튼만 제거 (display:none은 height 계산 파괴) */
+    button[data-testid="collapsedControl"] { display: none !important; }
 
     /* ── 타이틀 ── */
     .main-title {
