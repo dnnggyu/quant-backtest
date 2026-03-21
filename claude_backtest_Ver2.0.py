@@ -778,6 +778,61 @@ def run_backtest(
 # PERFORMANCE METRICS
 # ═══════════════════════════════════════════════════════════
 
+def build_daily_portfolio(results: dict, price_data: dict) -> pd.Series:
+    """리밸런싱 히스토리 + 일별 가격으로 AI 포트폴리오 일단위 시계열 구성."""
+    hist       = results.get("rebal_hist", [])
+    port_dates = [pd.Timestamp(d) for d in results["port_dates"]]
+    port_vals  = results["port_values"]
+
+    # 히스토리나 가격 데이터 없으면 기간 단위 그대로 반환
+    if not hist or not price_data:
+        return pd.Series(port_vals, index=pd.DatetimeIndex(port_dates))
+
+    records: dict = {}
+    cur_val = 1.0
+
+    # ① warm-up 구간 (학습 기간): 첫 운용 시작일 전까지 1.0으로 평탄
+    init_date   = port_dates[0]
+    first_trade = hist[0]["rebalance_date"]
+    for d in pd.bdate_range(init_date, first_trade):
+        records[d] = 1.0
+
+    # ② 리밸런싱별 일단위 포트폴리오 계산
+    for h in hist:
+        s_dt    = h["rebalance_date"]
+        e_dt    = h["next_date"]
+        tickers = h["selected"]
+
+        price_dict = {}
+        for t in tickers:
+            if t not in price_data:
+                continue
+            ohlcv = price_data[t]
+            mask  = (ohlcv.index >= s_dt) & (ohlcv.index <= e_dt)
+            sub   = ohlcv.loc[mask, "Close"].dropna()
+            if len(sub) >= 2:
+                price_dict[t] = sub / float(sub.iloc[0])  # 기간 시작 기준 정규화
+
+        if not price_dict:
+            records[e_dt] = cur_val * (1 + h["port_return"])
+            cur_val = records[e_dt]
+            continue
+
+        # 동일 가중 지수 × 현재 포트폴리오 가치
+        pf_df  = pd.DataFrame(price_dict).dropna(how="all")
+        eq_idx = pf_df.mean(axis=1)
+        for dt, v in eq_idx.items():
+            if dt >= s_dt:
+                records[dt] = float(v) * cur_val
+
+        cur_val = float(eq_idx.iloc[-1]) * cur_val
+
+    if not records:
+        return pd.Series(port_vals, index=pd.DatetimeIndex(port_dates))
+
+    return pd.Series(records).sort_index()
+
+
 def calc_metrics(series: pd.Series, label: str) -> dict:
     if len(series) < 2:
         return {"지표": label}
@@ -819,7 +874,7 @@ def norm_series(s: pd.Series, ref: pd.Timestamp) -> pd.Series:
 # TAB 1 ── 성과 비교
 # ═══════════════════════════════════════════════════════════
 
-def tab_performance(results: dict, benchmarks: dict):
+def tab_performance(results: dict, benchmarks: dict, price_data: dict):
     pd_ = results["port_dates"]
     pv_ = results["port_values"]
 
@@ -827,15 +882,19 @@ def tab_performance(results: dict, benchmarks: dict):
         st.warning("백테스트 기간이 짧아 성과 데이터가 부족합니다.")
         return
 
-    port_s = pd.Series(pv_, index=pd.DatetimeIndex(pd_))
-    start  = port_s.index[0]
-    metrics_all = [calc_metrics(port_s, "🤖 AI 전략")]
+    # 성과 지표 계산은 기간 단위 시리즈 사용 (정확한 TC 반영)
+    port_period = pd.Series(pv_, index=pd.DatetimeIndex(pd_))
+    start       = port_period.index[0]
+    metrics_all = [calc_metrics(port_period, "🤖 AI 전략")]
+
+    # 차트용: 일단위 시리즈 (벤치마크와 동일 빈도)
+    port_daily = build_daily_portfolio(results, price_data)
 
     col_chart, col_metrics = st.columns([7, 3])
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=port_s.index, y=port_s.values,
+        x=port_daily.index, y=port_daily.values,
         name="🤖 AI 전략",
         line=dict(color="#7c4dff", width=3),
         hovertemplate="%{x|%Y-%m-%d}<br>%{y:.3f}<extra>AI 전략</extra>",
@@ -1009,8 +1068,19 @@ def tab_history(results: dict):
 
     opts = [f"{h['rebalance_date'].strftime('%Y-%m-%d')} → {h['next_date'].strftime('%Y-%m-%d')}"
             for h in hist]
-    sel = st.selectbox("리밸런싱 기간 선택", opts, index=len(opts) - 1)
-    h   = hist[opts.index(sel)]
+
+    # session_state로 인덱스 관리 → 탭이 0으로 리셋되는 버그 방지
+    if "hist_sel_idx" not in st.session_state or st.session_state.hist_sel_idx >= len(opts):
+        st.session_state.hist_sel_idx = len(opts) - 1
+
+    sel = st.selectbox(
+        "리밸런싱 기간 선택",
+        opts,
+        index=st.session_state.hist_sel_idx,
+        key="hist_period_select",
+    )
+    st.session_state.hist_sel_idx = opts.index(sel)
+    h = hist[opts.index(sel)]
 
     ret_c = "pos" if h["port_return"] > 0 else "neg"
     ic_v  = h["ic"]
@@ -1050,7 +1120,8 @@ def tab_history(results: dict):
                     disp[c] = disp[c].apply(lambda x: f"{x:.2%}" if pd.notna(x) and isinstance(x, float) else x)
                 elif c in ["P/E 비율", "P/B 비율", "EV/EBITDA", "ADX(14)", "RSI(14)"]:
                     disp[c] = disp[c].apply(lambda x: f"{x:.1f}" if pd.notna(x) and isinstance(x, float) else x)
-            st.dataframe(disp, use_container_width=True, hide_index=True, height=360)
+            st.dataframe(disp, use_container_width=True, hide_index=True, height=360,
+                         key="hist_ticker_df")
 
     with col_r:
         st.markdown('<div class="section-hdr">🏆 지표 중요도 TOP 10</div>', unsafe_allow_html=True)
@@ -1069,7 +1140,7 @@ def tab_history(results: dict):
                 xaxis_title="중요도",
             )
             fig.update_yaxes(tickfont=dict(size=10))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="hist_top10_chart")
 
 
 # ═══════════════════════════════════════════════════════════
@@ -1083,7 +1154,7 @@ def tab_importance(results: dict):
         return
 
     avg_imp = fimp.mean().sort_values(ascending=False)
-    top_n   = st.slider("표시할 지표 수", 5, min(25, len(fimp.columns)), 10)
+    top_n   = st.slider("표시할 지표 수", 5, min(25, len(fimp.columns)), 10, key="importance_top_n")
     top_f   = avg_imp.head(top_n).index.tolist()
 
     palette = px.colors.qualitative.Plotly
@@ -1159,7 +1230,7 @@ def tab_heatmap(results: dict):
                 unsafe_allow_html=True)
 
     n_feats = st.slider("표시할 지표 수", 5, min(len(fimp.columns), 50),
-                        min(30, len(fimp.columns)))
+                        min(30, len(fimp.columns)), key="heatmap_n_feats")
     avg_imp = fimp.mean().sort_values(ascending=False)
     top_f   = avg_imp.head(n_feats).index.tolist()
 
@@ -1464,19 +1535,24 @@ def main():
             )
         return
 
+    # 위젯 트리 안정화: st.tabs()가 항상 동일한 위치(위젯 카운터)에 렌더링되도록
+    # if cfg["run"] 안에 두면 백테스트 실행 시와 결과 조회 시 st.tabs()의
+    # 자동 키가 달라져 탭 상태가 초기화되는 버그가 발생함
+    _status_slot = st.empty()
+    _prog_slot   = st.empty()
+
     # ── 백테스트 실행 ─────────────────────────────────────
     if cfg["run"]:
         universe = cfg["universe"]
         if not universe:
-            st.error("섹터를 선택해주세요.")
+            _status_slot.error("섹터를 선택해주세요.")
             return
 
-        status = st.empty()
-        prog   = st.progress(0)
+        _prog_slot.progress(0)
 
         def update_prog(val, msg):
-            prog.progress(val, msg)
-            status.info(msg)
+            _prog_slot.progress(val, msg)
+            _status_slot.info(msg)
 
         # 1. 가격 데이터
         update_prog(0.03, f"📡 {len(universe)}개 종목 가격 데이터 다운로드 중...")
@@ -1549,10 +1625,10 @@ def main():
         st.session_state.tech_map   = tech_map
         st.session_state.cfg        = cfg
 
-        prog.progress(1.0, "✅ 완료!")
+        _prog_slot.progress(1.0, "✅ 완료!")
         time.sleep(0.4)
-        prog.empty()
-        status.success(
+        _prog_slot.empty()
+        _status_slot.success(
             f"✅ 백테스트 완료! "
             f"{len(rebal_dates)}회 리밸런싱 | "
             f"{len(results['rebal_hist'])}회 학습 | "
@@ -1578,7 +1654,7 @@ def main():
         ])
 
         with tabs[0]:
-            tab_performance(results, benchmarks)
+            tab_performance(results, benchmarks, price_data)
         with tabs[1]:
             tab_ic(results)
         with tabs[2]:
