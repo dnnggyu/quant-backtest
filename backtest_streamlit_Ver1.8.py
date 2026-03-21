@@ -1466,7 +1466,7 @@ def render_topbar(sp500_df: pd.DataFrame, all_sectors: list) -> dict:
             )
         with c2:
             rolling_w = st.slider(
-                "롤링 학습 윈도우 (기간 수)", 2, 12, 4, 1,
+                "롤링 학습 윈도우 (기간 수)", 2, 24, 12, 1,
                 help="모델 학습에 사용할 이전 리밸런싱 기간 수",
             )
         with c3:
