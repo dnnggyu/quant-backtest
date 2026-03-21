@@ -88,8 +88,42 @@ st.markdown("""
 
     /* ── 모바일 대응 ── */
     @media (max-width: 768px) {
-        .main-title { font-size: 1.4rem; }
-        .metric-value { font-size: 1rem; }
+        /* 제목 축소 */
+        .main-title { font-size: 1.3rem; }
+        .sub-title  { font-size: 0.78rem; }
+        .metric-value { font-size: 0.95rem; }
+        .metric-label { font-size: 0.65rem; }
+
+        /* 페이지 여백 최소화 */
+        .block-container {
+            padding-left: 0.6rem !important;
+            padding-right: 0.6rem !important;
+            padding-top: 0.5rem !important;
+            max-width: 100% !important;
+        }
+
+        /* 핵심: 컬럼을 세로로 스택 */
+        [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap !important;
+            gap: 0 !important;
+        }
+        [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+            flex: 0 0 100% !important;
+            min-width: 100% !important;
+            width: 100% !important;
+        }
+
+        /* 실행 버튼 full-width */
+        .stButton > button { width: 100% !important; margin-top: 0.3rem; }
+
+        /* 탭 레이블 모바일 축소 */
+        .stTabs [data-baseweb="tab"] { font-size: 0.72rem !important; padding: 0.3rem 0.4rem !important; }
+
+        /* 섹션 헤더 */
+        .section-hdr { font-size: 0.85rem; }
+
+        /* metric-box 모바일 패딩 */
+        .metric-box { padding: 0.5rem 0.6rem; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1466,7 +1500,7 @@ def render_topbar(sp500_df: pd.DataFrame, all_sectors: list) -> dict:
             )
         with c2:
             rolling_w = st.slider(
-                "롤링 학습 윈도우 (기간 수)", 2, 12, 4, 1,
+                "롤링 학습 윈도우 (기간 수)", 2, 24, 12, 1,
                 help="모델 학습에 사용할 이전 리밸런싱 기간 수",
             )
         with c3:
@@ -1478,7 +1512,7 @@ def render_topbar(sp500_df: pd.DataFrame, all_sectors: list) -> dict:
                 help="왕복 총 거래비용 (수수료 + 슬리피지)",
             )
         with c5:
-            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div style="height:1.7rem"></div>', unsafe_allow_html=True)
             run_btn = st.button("🚀 실행", type="primary", use_container_width=True)
 
         # ── Row 3: 날짜 설정 ────────────────────────────────
