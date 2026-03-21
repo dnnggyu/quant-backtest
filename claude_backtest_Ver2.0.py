@@ -38,16 +38,11 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* ── 전체 배경 흰색 + Streamlit 헤더/데코 숨기기 ── */
+    /* ── 배경 & 사이드바 숨김 ── */
     .stApp { background: #ffffff; }
     section[data-testid="stSidebar"] { display: none; }
-    header[data-testid="stHeader"]   { display: none !important; }
-    [data-testid="stDecoration"]     { display: none !important; }
-    #MainMenu                        { display: none !important; }
-    footer                           { display: none !important; }
-    /* 헤더 숨긴 뒤 block-container 상단 여백 제거 */
-    .block-container { padding-top: 1.2rem !important; }
 
+    /* ── 타이틀 ── */
     .main-title {
         font-size: 2.0rem; font-weight: 800;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -55,11 +50,15 @@ st.markdown("""
         margin-bottom: 0.1rem;
     }
     .sub-title { font-size: 0.9rem; color: #555; margin-bottom: 0.8rem; }
+
+    /* ── 섹션 헤더 ── */
     .section-hdr {
         font-size: 0.95rem; font-weight: 700; color: #1565c0;
         margin: 0.8rem 0 0.4rem 0; padding-bottom: 0.2rem;
         border-bottom: 2px solid #e3f2fd;
     }
+
+    /* ── 지표 카드 ── */
     .metric-box {
         background: #f5f7fa; border-radius: 8px; padding: 0.7rem 1rem;
         border: 1px solid #dee2e6; text-align: center; margin-bottom: 0.3rem;
@@ -68,75 +67,28 @@ st.markdown("""
     .metric-value { font-size: 1.2rem; font-weight: 700; }
     .pos { color: #2e7d32; } .neg { color: #c62828; } .neu { color: #1565c0; }
 
-    /* ── 상단 설정 바 ── */
-    .settings-bar {
-        background: #f8f9fa; border-radius: 10px; padding: 1rem 1.2rem;
-        border: 1px solid #dee2e6; margin-bottom: 1rem;
-    }
-    .settings-title {
-        font-size: 1rem; font-weight: 700; color: #333; margin-bottom: 0.5rem;
-    }
-
-    /* ── Streamlit 기본 요소 색상 보정 ── */
-    .stSlider > label { color: #222 !important; font-weight: 600; }
+    /* ── Streamlit 위젯 레이블 색상 ── */
+    .stSlider > label      { color: #222 !important; font-weight: 600; }
     .stNumberInput > label { color: #222 !important; font-weight: 600; }
     .stMultiSelect > label { color: #222 !important; font-weight: 600; }
-    .stCheckbox > label { color: #222 !important; }
-    .stDateInput > label { color: #222 !important; font-weight: 600; }
+    .stCheckbox > label    { color: #222 !important; }
+    .stDateInput > label   { color: #222 !important; font-weight: 600; }
     div[data-testid="stExpander"] summary p { color: #222 !important; font-weight: 700; }
 
     /* ── 탭 스타일 ── */
     .stTabs [data-baseweb="tab-list"] { gap: 0.3rem; }
-    .stTabs [data-baseweb="tab"] {
-        font-size: 0.82rem; font-weight: 600; color: #444;
-    }
+    .stTabs [data-baseweb="tab"] { font-size: 0.82rem; font-weight: 600; color: #444; }
     .stTabs [aria-selected="true"] { color: #1565c0 !important; }
 
-    /* ── 모바일 대응 ── */
+    /* ── 모바일: 폰트 크기 조정만 (레이아웃 CSS 없음 — Streamlit 기본 렌더링 유지) ── */
     @media (max-width: 768px) {
-        /* 제목 축소 */
         .main-title   { font-size: 1.3rem; }
-        .sub-title    { font-size: 0.78rem; margin-bottom: 0.4rem; }
+        .sub-title    { font-size: 0.78rem; }
         .metric-value { font-size: 0.95rem; }
         .metric-label { font-size: 0.65rem; }
         .section-hdr  { font-size: 0.85rem; }
-
-        /* 페이지 여백 최소화 */
-        .block-container {
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
-            padding-top: 0.4rem !important;
-            max-width: 100% !important;
-        }
-
-        /* 슬라이더 2열 그리드 (5개 → 3행) */
-        [data-testid="stHorizontalBlock"] {
-            flex-wrap: wrap !important;
-            gap: 0 !important;
-        }
-        [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-            flex: 0 0 50% !important;
-            min-width: 50% !important;
-            width: 50% !important;
-            box-sizing: border-box !important;
-        }
-
-        /* 실행 버튼 full-width */
-        .stButton > button { width: 100% !important; margin-top: 0.2rem; }
-
-        /* 탭 레이블 모바일 축소 */
-        .stTabs [data-baseweb="tab"] {
-            font-size: 0.68rem !important;
-            padding: 0.25rem 0.3rem !important;
-        }
-
-        /* metric-box 패딩 */
-        .metric-box { padding: 0.45rem 0.5rem; }
-
-        /* expander 내부 패딩 축소 */
-        [data-testid="stExpander"] details summary {
-            padding: 0.5rem 0.7rem !important;
-        }
+        .metric-box   { padding: 0.45rem 0.5rem; }
+        .stTabs [data-baseweb="tab"] { font-size: 0.72rem !important; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1505,29 +1457,29 @@ def render_topbar(sp500_df: pd.DataFrame, all_sectors: list) -> dict:
 
         st.markdown("---")
 
-        # ── Row 2: 핵심 파라미터 + 실행 버튼 ──────────────
-        c1, c2, c3, c4, c5 = st.columns([2, 2, 2, 2, 1])
-        with c1:
+        # ── Row 2: 파라미터 2×2 그리드 (모바일/데스크톱 공통) ──
+        r1c1, r1c2 = st.columns(2)
+        with r1c1:
             rebal_m = st.slider(
-                "리밸런싱 기간 (개월)", 1, 12, 1, 1,
+                "리밸런싱 (개월)", 1, 12, 1, 1,
                 help="포트폴리오 리밸런싱 주기",
             )
-        with c2:
+        with r1c2:
             rolling_w = st.slider(
-                "롤링 학습 윈도우 (기간 수)", 2, 24, 12, 1,
+                "롤링 윈도우 (기간)", 2, 24, 12, 1,
                 help="모델 학습에 사용할 이전 리밸런싱 기간 수",
             )
-        with c3:
+        r2c1, r2c2 = st.columns(2)
+        with r2c1:
             n_stocks = st.slider("투자 종목 수", 1, 20, 5, 1)
-        with c4:
+        with r2c2:
             tc_pct = st.number_input(
                 "거래비용 (%)", min_value=0.0, max_value=5.0,
                 value=0.3, step=0.05, format="%.2f",
                 help="왕복 총 거래비용 (수수료 + 슬리피지)",
             )
-        with c5:
-            st.markdown('<div style="height:1.7rem"></div>', unsafe_allow_html=True)
-            run_btn = st.button("🚀 실행", type="primary", use_container_width=True)
+        # 실행 버튼: 항상 전체폭 (모바일에서 눈에 잘 띄도록)
+        run_btn = st.button("🚀 백테스트 실행", type="primary", use_container_width=True)
 
         # ── Row 3: 날짜 설정 ────────────────────────────────
         # 유의미한 백테스트: rolling_win + min_test_periods 개 리밸런싱 날짜 필요
@@ -1590,13 +1542,15 @@ def main():
 
     # ── 환영 화면 ─────────────────────────────────────────
     if not cfg["run"] and st.session_state.results is None:
-        st.info("위 설정 바에서 원하는 조건을 선택한 후 **🚀 실행** 버튼을 누르세요.")
-        c1, c2, c3, c4 = st.columns(4)
+        st.info("위 설정 바에서 원하는 조건을 선택한 후 **🚀 백테스트 실행** 버튼을 누르세요.")
+        # 2×2 그리드 (4컬럼은 모바일에서 너무 좁음)
+        wa, wb = st.columns(2)
+        wc, wd = st.columns(2)
         for col, icon, title, items in [
-            (c1, "🧠", "AI 모델", ["Random Forest 예측", "롤링 윈도우 학습", "피처 중요도 추출"]),
-            (c2, "📐", "지표 (50+)", ["기술지표 25종", "펀더멘털 25종", "복합 지표"]),
-            (c3, "📊", "분석 뷰", ["IC 분석", "리밸런싱 히스토리", "지표 히트맵"]),
-            (c4, "🔴", "실시간", ["AI 추천 종목", "레이더 차트", "복합 점수 랭킹"]),
+            (wa, "🧠", "AI 모델",   ["Random Forest 예측", "롤링 윈도우 학습", "피처 중요도 추출"]),
+            (wb, "📐", "지표 (50+)", ["기술지표 25종", "펀더멘털 25종", "복합 지표"]),
+            (wc, "📊", "분석 뷰",   ["IC 분석", "리밸런싱 히스토리", "지표 히트맵"]),
+            (wd, "🔴", "실시간",    ["AI 추천 종목", "레이더 차트", "복합 점수 랭킹"]),
         ]:
             col.markdown(
                 f"**{icon} {title}**\n" + "".join(f"\n- {i}" for i in items)
