@@ -38,9 +38,15 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* ── 전체 배경 흰색 ── */
+    /* ── 전체 배경 흰색 + Streamlit 헤더/데코 숨기기 ── */
     .stApp { background: #ffffff; }
     section[data-testid="stSidebar"] { display: none; }
+    header[data-testid="stHeader"]   { display: none !important; }
+    [data-testid="stDecoration"]     { display: none !important; }
+    #MainMenu                        { display: none !important; }
+    footer                           { display: none !important; }
+    /* 헤더 숨긴 뒤 block-container 상단 여백 제거 */
+    .block-container { padding-top: 1.2rem !important; }
 
     .main-title {
         font-size: 2.0rem; font-weight: 800;
@@ -89,41 +95,48 @@ st.markdown("""
     /* ── 모바일 대응 ── */
     @media (max-width: 768px) {
         /* 제목 축소 */
-        .main-title { font-size: 1.3rem; }
-        .sub-title  { font-size: 0.78rem; }
+        .main-title   { font-size: 1.3rem; }
+        .sub-title    { font-size: 0.78rem; margin-bottom: 0.4rem; }
         .metric-value { font-size: 0.95rem; }
         .metric-label { font-size: 0.65rem; }
+        .section-hdr  { font-size: 0.85rem; }
 
         /* 페이지 여백 최소화 */
         .block-container {
-            padding-left: 0.6rem !important;
-            padding-right: 0.6rem !important;
-            padding-top: 0.5rem !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            padding-top: 0.4rem !important;
             max-width: 100% !important;
         }
 
-        /* 핵심: 컬럼을 세로로 스택 */
+        /* 슬라이더 2열 그리드 (5개 → 3행) */
         [data-testid="stHorizontalBlock"] {
             flex-wrap: wrap !important;
             gap: 0 !important;
         }
         [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-            flex: 0 0 100% !important;
-            min-width: 100% !important;
-            width: 100% !important;
+            flex: 0 0 50% !important;
+            min-width: 50% !important;
+            width: 50% !important;
+            box-sizing: border-box !important;
         }
 
         /* 실행 버튼 full-width */
-        .stButton > button { width: 100% !important; margin-top: 0.3rem; }
+        .stButton > button { width: 100% !important; margin-top: 0.2rem; }
 
         /* 탭 레이블 모바일 축소 */
-        .stTabs [data-baseweb="tab"] { font-size: 0.72rem !important; padding: 0.3rem 0.4rem !important; }
+        .stTabs [data-baseweb="tab"] {
+            font-size: 0.68rem !important;
+            padding: 0.25rem 0.3rem !important;
+        }
 
-        /* 섹션 헤더 */
-        .section-hdr { font-size: 0.85rem; }
+        /* metric-box 패딩 */
+        .metric-box { padding: 0.45rem 0.5rem; }
 
-        /* metric-box 모바일 패딩 */
-        .metric-box { padding: 0.5rem 0.6rem; }
+        /* expander 내부 패딩 축소 */
+        [data-testid="stExpander"] details summary {
+            padding: 0.5rem 0.7rem !important;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1470,8 +1483,9 @@ def tab_realtime(price_data: dict, fund_map: dict, tech_map: dict,
 
 def render_topbar(sp500_df: pd.DataFrame, all_sectors: list) -> dict:
     """사이드바 대신 페이지 상단 가로 배치 설정 UI."""
-
-    with st.expander("⚙️ 백테스트 설정 펼치기 / 접기", expanded=True):
+    # 결과가 이미 있으면 접힌 상태로 → 결과 화면을 최대한 확보
+    has_results = "results" in st.session_state and st.session_state.results is not None
+    with st.expander("⚙️ 백테스트 설정 펼치기 / 접기", expanded=not has_results):
 
         # ── Row 1: 섹터 선택 ───────────────────────────────
         st.markdown("**📂 분석 섹터 선택** (복수 선택 가능)")
