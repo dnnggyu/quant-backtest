@@ -15,4 +15,5 @@ requests
 seaborn
 quantstats
 folium
-XGBRegressor
+xgboost
+lightgbm
